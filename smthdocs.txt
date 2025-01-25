@@ -1,0 +1,95 @@
+so i decided to create a little terminal game to programm something in C++ just for fun
+
+=======================================
+[ saskatchewan - sokoban-like game ?? ]
+=======================================
+
+what is this? ------------------------
+
+    i wanted to create some simple game to practice a little bit of C/C++ programming, and i have recently played game called Sokoban after i saw that j_blow making a sokoban-like game, but i think i saw a classic sokoban way before that.
+    game is relatively simple: you are in the warehouse, and there is some boxes that you need to move to the right place that marked with dot. What makes this game hard is that you need to think about your moves ahead, and every move affect on all puzzle. This game feels like chess, thats why i like it.
+
+--------------------------------------
+
+
+I. [ implementing ]
+
+    -------------------
+    I-0. the game loop
+    -------------------
+
+    The first thing we need to do to create our game, is a game loop! For now i will be using just simple infinite while loop, that would brake if i press [esc] or [ctrl+c]. To do that, i have created a function where i send my char variable with the last character that was sended to the program. The example of this here:
+
+    void gameLoop()
+    {
+        while (true)
+        {
+            char ch = getch();
+            readSignal(ch);
+        }
+    }
+
+    readSignal(char ch)
+    {
+        if (ch == 0x1b || ch == 0x3)
+            abort();
+    }
+
+    The [0x1b] and [0x3] is the hex values for keyboard keys [esc] and [ctrl+c] respectively.
+    Why would i create a whole new function just for processing input from user? well, you can obviously make whole game in the main function, but it would be better to separate all game mechanics to different functions to know what is going on in the program, and also i would add some other keyboard buttons to that function, for example - for moving our character, but that would be covered later!
+
+    ----------------
+    I-1. leveling
+    ----------------
+
+    so, for the character and the enemies i have created the Entity struct, which contain all of the variables that i need for now, which is Name of the Entity, HealthBar, StaminaBar, ExpBar, BaseDamage and the Level of the Entity.
+
+    first, i decided to make function for checking the EXP of the character, and if this xp reach some value (which would be increasing each level) i would gain a level. NOTE: enemies made from an Entity struct, same as the character, but they will not gain an xp from a fight, they would just have some level to keep you challenged for some time
+
+    i have defined some constants that contain float value that represents exp threshold for gaining a new level. For now there is five levels, so defining is OK for now. But if there would be more levels, i would need to create a new function that would calculate all of that automatically.
+
+    this definings looks like this:
+
+    #define LVLONE  150.0f
+    #define LVLTWO  300.0f
+    #define LVLTHR  450.0f
+    #define LVLFOR  600.0f
+    #define LVLFVE  800.0f // a little bit more xp needed for level 5!
+
+    [NOTE: because this game is developing in C++, the pseudocode examples will be in C/C++ form as well]
+
+    when your xp will be more or equal to this values, you will gain a level
+    i have created some little functions to do this:
+
+    int checkExp(Entity baseEntity)
+    {
+        if (baseEntity.ExpBar >= retLVL(baseEntity))
+        {
+            return 1;
+
+            // if player reach the needed value for level up, this function will return 1
+            // as a signal to execute lvlUp() function.
+        }
+
+        return 0;
+
+        // otherwise it will return 0, which is signal to do nothing.
+    }
+
+    retLVL(Entity baseEntity)
+    {
+        if (baseEntity.Level == 0)
+            return LVLONE;
+        if (baseEntity.Level == 1)
+            return LVLTWO;
+
+        // and so on...
+        // on the last one though, we return a big number
+        // that is impossible to reach in this game
+
+        if (baseEntity.Level == 5)
+            return big_number();
+
+        // we return XP points of the next level to see if
+        // our character reach enough of EXP to gain a new level
+    }
