@@ -29,7 +29,7 @@ int main()
         ch = getch();
         readSignal(ch);
         if (fdebug)
-            debug(ch);
+            printf("\nyou pressed %c : %x\n", ch, ch);
         if (g_mode == 1)
             renderLevel(curLvl);
     }
@@ -151,119 +151,35 @@ void readSignal(char ch)
 void moveChar(char ch)
 {
     if (ch == W_CHAR)
-    {
-        vec2 move_to;
-        vec2 move_box;
-
-        move_to.point_x = curLvl.player_cords.point_x;
-        move_to.point_y = curLvl.player_cords.point_y-1;
-
-        move_box.point_x = move_to.point_x;
-        move_box.point_y = move_to.point_y-1;
-
-        if (is_movable(move_to))
-        {
-            swap(curLvl.player_cords, move_to, '@');
-            curLvl.player_cords.point_x = move_to.point_x;
-            curLvl.player_cords.point_y = move_to.point_y;
-        }
-        else if (is_box(move_to))
-        {
-            if (is_movable(move_box))
-            {
-                swap(move_to, move_box, 'b');
-                update_box_cords(move_to, move_box);
-                swap(curLvl.player_cords, move_to, '@');
-                curLvl.player_cords.point_x = move_to.point_x;
-                curLvl.player_cords.point_y = move_to.point_y;
-            }
-        }
-    }
+        change_cords(0, -1);
     if (ch == A_CHAR)
-    {
-        vec2 move_to;
-        vec2 move_box;
-
-        move_to.point_x = curLvl.player_cords.point_x-1;
-        move_to.point_y = curLvl.player_cords.point_y;
-
-        move_box.point_x = move_to.point_x-1;
-        move_box.point_y = move_to.point_y;
-
-        if (is_movable(move_to))
-        {
-            swap(curLvl.player_cords, move_to, '@');
-            curLvl.player_cords.point_x = move_to.point_x;
-            curLvl.player_cords.point_y = move_to.point_y;
-        }
-        else if (is_box(move_to))
-        {
-            if (is_movable(move_box))
-            {
-                swap(move_to, move_box, 'b');
-                update_box_cords(move_to, move_box);
-                swap(curLvl.player_cords, move_to, '@');
-                curLvl.player_cords.point_x = move_to.point_x;
-                curLvl.player_cords.point_y = move_to.point_y;
-            }
-        }
-    }
+        change_cords(-1, 0);
     if (ch == S_CHAR)
-    {
-        vec2 move_to;
-        vec2 move_box;
-
-        move_to.point_x = curLvl.player_cords.point_x;
-        move_to.point_y = curLvl.player_cords.point_y+1;
-
-        move_box.point_x = move_to.point_x;
-        move_box.point_y = move_to.point_y+1;
-
-        if (is_movable(move_to))
-        {
-            swap(curLvl.player_cords, move_to, '@');
-            curLvl.player_cords.point_x = move_to.point_x;
-            curLvl.player_cords.point_y = move_to.point_y;
-        }
-        else if (is_box(move_to))
-        {
-            if (is_movable(move_box))
-            {
-                swap(move_to, move_box, 'b');
-                update_box_cords(move_to, move_box);
-                swap(curLvl.player_cords, move_to, '@');
-                curLvl.player_cords.point_x = move_to.point_x;
-                curLvl.player_cords.point_y = move_to.point_y;
-            }
-        }
-    }
+        change_cords(0, 1);
     if (ch == D_CHAR)
+        change_cords(1, 0);
+}
+
+void change_cords(int adder_x, int adder_y)
+{
+    vec2 move_to;
+
+    move_to.point_x = curLvl.player_cords.point_x + adder_x;
+    move_to.point_y = curLvl.player_cords.point_y + adder_y;
+
+    if (is_movable(move_to, 'p'))
+        swap(curLvl.player_cords, move_to, '@', 'p');
+    else if (is_movable(move_to, 'b'))
     {
-        vec2 move_to;
         vec2 move_box;
 
-        move_to.point_x = curLvl.player_cords.point_x+1;
-        move_to.point_y = curLvl.player_cords.point_y;
+        move_box.point_x = move_to.point_x + adder_x;
+        move_box.point_y = move_to.point_y + adder_y;
 
-        move_box.point_x = move_to.point_x+1;
-        move_box.point_y = move_to.point_y;
-
-        if (is_movable(move_to))
+        if (is_movable(move_box, 'p'))
         {
-            swap(curLvl.player_cords, move_to, '@');
-            curLvl.player_cords.point_x = move_to.point_x;
-            curLvl.player_cords.point_y = move_to.point_y;
-        }
-        else if (is_box(move_to))
-        {
-            if (is_movable(move_box))
-            {
-                swap(move_to, move_box, 'b');
-                update_box_cords(move_to, move_box);
-                swap(curLvl.player_cords, move_to, '@');
-                curLvl.player_cords.point_x = move_to.point_x;
-                curLvl.player_cords.point_y = move_to.point_y;
-            }
+            swap(move_to, move_box, 'b', 'b');
+            swap(curLvl.player_cords, move_to, '@', 'p');
         }
     }
 }
@@ -275,7 +191,8 @@ bool check_end(std::vector<vec2> boxes, std::vector<vec2> fpoints)
     {
         for (int j = 0; j < boxes.size(); j++)
         {
-            if ((fpoints.at(i).point_x == boxes.at(j).point_x) && (fpoints.at(i).point_y == boxes.at(j).point_y))
+            if ((fpoints.at(i).point_x == boxes.at(j).point_x) &&
+            (fpoints.at(i).point_y == boxes.at(j).point_y))
                 copt++;
         }
     }
@@ -287,22 +204,26 @@ bool check_end(std::vector<vec2> boxes, std::vector<vec2> fpoints)
     return false;
 }
 
-bool is_movable(vec2 mv_to)
+bool is_movable(vec2 mv_to, char marker)
 {
     char check_this = curLvl.lmap.at(mv_to.point_y).at(mv_to.point_x);
-    if (check_this == ' ' || check_this == '.')
-        return true;
+    if (marker == 'p')
+    {
+        if (check_this == ' ' || check_this == '.')
+            return true;
+        return false;
+    }
+    else if (marker == 'b')
+    {
+        if (check_this == 'b')
+            return true;
+        return false;
+    }
+
     return false;
 }
 
-bool is_box(vec2 bc)
-{
-    if (curLvl.lmap.at(bc.point_y).at(bc.point_x) == 'b')
-        return true;
-    return false;
-}
-
-void swap(vec2 mv_from, vec2 mv_to, char swapper)
+void swap(vec2 mv_from, vec2 mv_to, char swapper, char marker)
 {
     if (find_cords(mv_from, curLvl.f_cords))
     {
@@ -313,6 +234,24 @@ void swap(vec2 mv_from, vec2 mv_to, char swapper)
     {
         curLvl.lmap.at(mv_from.point_y).at(mv_from.point_x) = 0x20;
         curLvl.lmap.at(mv_to.point_y).at(mv_to.point_x) = swapper;
+    }
+
+    if (marker == 'p')
+    {
+        curLvl.player_cords.point_x = mv_to.point_x;
+        curLvl.player_cords.point_y = mv_to.point_y;
+    }
+    else if (marker == 'b')
+    {
+        for (int i = 0; i < curLvl.box_cords.size(); i++)
+        {
+            if ((mv_from.point_y == curLvl.box_cords.at(i).point_y) &&
+            (mv_from.point_x == curLvl.box_cords.at(i).point_x))
+            {
+                curLvl.box_cords.at(i).point_x = mv_to.point_x;
+                curLvl.box_cords.at(i).point_y = mv_to.point_y;
+            }
+        }
     }
 }
 
@@ -326,23 +265,6 @@ bool find_cords(vec2 ft, std::vector<vec2> here)
         }
     }
     return false;
-}
-
-void update_box_cords(vec2 old_box, vec2 new_box)
-{
-    for (int i = 0; i < curLvl.box_cords.size(); i++)
-    {
-        if ((old_box.point_y == curLvl.box_cords.at(i).point_y) && (old_box.point_x == curLvl.box_cords.at(i).point_x))
-        {
-            curLvl.box_cords.at(i).point_x = new_box.point_x;
-            curLvl.box_cords.at(i).point_y = new_box.point_y;
-        }
-    }
-}
-
-void debug(char ch)
-{
-    printf("\nyou pressed %c : %x\n", ch, ch);
 }
 
 void ask_if_quit()

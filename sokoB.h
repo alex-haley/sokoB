@@ -14,12 +14,11 @@ struct Level
     std::vector<vec2> f_cords;
 };
 
-bool is_box(vec2);
-bool is_movable(vec2);
+bool is_movable(vec2, char);
 bool find_cords(vec2, std::vector<vec2>);
 bool check_end(std::vector<vec2>, std::vector<vec2>);
-void update_box_cords(vec2, vec2);
-void swap(vec2, vec2, char);
+void change_cords(int, int);
+void swap(vec2, vec2, char, char);
 void startMenu();
 void loadLevel();
 void renderLevel(Level);
