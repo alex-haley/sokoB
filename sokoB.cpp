@@ -1,24 +1,9 @@
-#include <cstdio>
-#include <string>
-#include <vector>
-#include <random>
-#include <ios>
-#include <iostream>
-#include <fstream>
-#include <conio.h>
 #include "sokoB.h"
-
-#define W_CHAR  0x77
-#define A_CHAR  0x61
-#define S_CHAR  0x73
-#define D_CHAR  0x64
-#define DOTP    0x2e
-#define BOXP    0x62
-#define PLRP    0x40
 
 char ch;
 int g_mode = 0;
 bool fdebug = false;
+int number = 1;
 Level curLvl;
 
 int main()
@@ -42,19 +27,23 @@ void startMenu()
     printf("\n");
     printf("mini-sokoban game made by alex-haley, 2025\n");
     printf("\t1. new game\n");
+    printf("\t2. load game\n");
     printf("\t3. debug\n");
+    printf("\t[wasd] to move\n");
     printf("\t[space] to restart level\n");
     printf("\t[esc]/[ctrl+c] to exit\n");
+    printf("note: when you exit game saves your current level\n");
 }
 
 void loadLevel()
 {
     std::string reader;
+    std::string name = "level" + std::to_string(number) + ".txt";
     Level rlvl;
-    std::ifstream level1("level1.txt");
+    std::ifstream level(name);
     int ycall = 0;
 
-    while (getline(level1, reader))
+    while (getline(level, reader))
     {
         std::vector<char> lvlstring;
         vec2 bcords;
@@ -117,6 +106,8 @@ void renderLevel(Level blvl)
         }
         printf("\n");
     }
+
+    printf("%d/%d\n", number, LVLS);
 }
 
 void readSignal(char ch)
@@ -128,6 +119,13 @@ void readSignal(char ch)
         g_mode = 1;
         loadLevel();
     }
+    if (ch == 0x32)
+    {
+        std::ifstream load("dontedit.save", std::ios::binary);
+        load >> number;
+        g_mode = 1;
+        loadLevel();
+    }
     if (ch == 0x33)
     {
         if (fdebug)
@@ -135,6 +133,7 @@ void readSignal(char ch)
         else
             fdebug = true;
     }
+
     if ((ch == W_CHAR || ch == A_CHAR || ch == S_CHAR || ch == D_CHAR) && (g_mode == 1))
         moveChar(ch);
     if (ch == 0x20 && g_mode == 1)
@@ -143,8 +142,17 @@ void readSignal(char ch)
     {
         printf("you completed this level!\n");
         printf("\n");
-        startMenu();
-        g_mode = 0;
+        if (number == 3)
+        {
+            printf("you have completed the main game!\n");
+            startMenu();
+            g_mode = 0;
+        }
+        else
+        {
+            number += 1;
+            loadLevel();
+        }
     }
 }
 
@@ -226,15 +234,11 @@ bool is_movable(vec2 mv_to, char marker)
 void swap(vec2 mv_from, vec2 mv_to, char swapper, char marker)
 {
     if (find_cords(mv_from, curLvl.f_cords))
-    {
         curLvl.lmap.at(mv_from.point_y).at(mv_from.point_x) = DOTP;
-        curLvl.lmap.at(mv_to.point_y).at(mv_to.point_x) = swapper;
-    }
     else
-    {
         curLvl.lmap.at(mv_from.point_y).at(mv_from.point_x) = 0x20;
-        curLvl.lmap.at(mv_to.point_y).at(mv_to.point_x) = swapper;
-    }
+
+    curLvl.lmap.at(mv_to.point_y).at(mv_to.point_x) = swapper;
 
     if (marker == 'p')
     {
@@ -277,7 +281,12 @@ void ask_if_quit()
         ask = getch();
         printf("\n");
         if (ask == 'y')
+        {
+            std::ofstream save("dontedit.save", std::ios::binary);
+            save << number << "\n";
+            save.close();
             abort();
+        }
         if (ask == 'n')
             break;
     }

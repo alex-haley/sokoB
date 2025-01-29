@@ -1,5 +1,22 @@
 #pragma once
 
+#include <cstdio>
+#include <string>
+#include <vector>
+#include <ios>
+#include <iostream>
+#include <fstream>
+#include <conio.h>
+
+#define W_CHAR  0x77
+#define A_CHAR  0x61
+#define S_CHAR  0x73
+#define D_CHAR  0x64
+#define DOTP    0x2e
+#define BOXP    0x62
+#define PLRP    0x40
+#define LVLS    4
+
 struct vec2
 {
     int point_x;
