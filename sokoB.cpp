@@ -123,6 +123,7 @@ void readSignal(char ch)
     {
         std::ifstream load("dontedit.save", std::ios::binary);
         load >> number;
+        load.close();
         g_mode = 1;
         loadLevel();
     }
