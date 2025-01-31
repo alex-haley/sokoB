@@ -1,0 +1,8 @@
+Vulkan
+    Read the specification.
+    How to put something in the window that i created?
+
+sokoB
+    make saves better.
+    make graphics mode (when i succedded Vulkan API)
+    maybe turn levels into an ascii_map() function inside program and basically render levels inside program and not in txt files?

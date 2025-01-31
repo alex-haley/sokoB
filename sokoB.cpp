@@ -15,7 +15,7 @@ int main()
         readSignal(ch);
         if (fdebug)
             printf("\nyou pressed %c : %x\n", ch, ch);
-        if (g_mode == 1)
+        if (g_mode == 1 || g_mode == 2)
             renderLevel(curLvl);
     }
 
@@ -26,74 +26,111 @@ void startMenu()
 {
     printf("\n");
     printf("mini-sokoban game made by alex-haley, 2025\n");
-    printf("\t1. new game\n");
-    printf("\t2. load game\n");
+    printf("\t1. start game\n");
+    printf("\t2. load level from file\n");
     printf("\t3. debug\n");
     printf("\t[wasd] to move\n");
     printf("\t[space] to restart level\n");
     printf("\t[esc]/[ctrl+c] to exit\n");
-    printf("note: when you exit game saves your current level\n");
+    printf("NOTE: when you exit game saves your current level\n");
+    printf("\tyou can delete save file to start a fresh game\n");
+    printf("NOTE: when loading level from file it should be named as 'level1.txt'\n");
 }
 
-void loadLevel()
+std::vector<std::vector<char>> pick_map()
 {
-    std::string reader;
-    std::string name = "level" + std::to_string(number) + ".txt";
+    switch (number)
+    {
+        case 1:
+            return lvl1;
+            break;
+        case 2:
+            return lvl2;
+            break;
+        case 3:
+            return lvl3;
+            break;
+        case 4:
+            return lvl4;
+            break;
+        default:
+            exit(-1);
+            break;
+    }
+}
+
+void load_map(std::vector< std::vector<char> > load_this_map)
+{
     Level rlvl;
+    rlvl.lmap = load_this_map;
+    vec2 bcords;
+    vec2 fcords;
+    for (int i = 0; i < load_this_map.size(); i++)
+    {
+        for (int j = 0; j < load_this_map.at(i).size(); j++)
+        {
+            if (load_this_map.at(i).at(j) == PLRP)
+            {
+                rlvl.player_cords.point_x = j;
+                rlvl.player_cords.point_y = i;
+            }
+            if (load_this_map.at(i).at(j) == BOXP)
+            {
+                bcords.point_x = j;
+                bcords.point_y = i;
+                rlvl.box_cords.push_back(bcords);
+            }
+            if (load_this_map.at(i).at(j) == DOTP)
+            {
+                fcords.point_x = j;
+                fcords.point_y = i;
+                rlvl.f_cords.push_back(fcords);
+            }
+        }
+    }
+
+    curLvl = rlvl;
+
+    printf("\n[m]level loaded successfully.\n");
+    printf("\nplayer: x: %d y: %d\n",
+        curLvl.player_cords.point_x,
+        curLvl.player_cords.point_y);
+
+    for (int i = 0; i < curLvl.box_cords.size(); i++)
+    {
+        printf("box %d: x: %d, y: %d\n", i+1,
+            curLvl.box_cords.at(i).point_x,
+            curLvl.box_cords.at(i).point_y);
+    }
+
+    for (int i = 0; i < curLvl.f_cords.size(); i++)
+    {
+        printf("f-point %d: x: %d, y: %d\n", i+1,
+            curLvl.f_cords.at(i).point_x,
+            curLvl.f_cords.at(i).point_y);
+    }
+}
+
+std::vector< std::vector<char> > load_from_file()
+{
+    std::vector< std::vector<char> > lvlmat;
+    std::string reader;
+    std::string name = "level1.txt";
     std::ifstream level(name);
-    int ycall = 0;
 
     while (getline(level, reader))
     {
         std::vector<char> lvlstring;
-        vec2 bcords;
-        vec2 fcords;
 
         for (int i = 0; i < reader.size(); i++)
         {
-            if (reader.at(i) == PLRP)
-            {
-                rlvl.player_cords.point_x = i;
-                rlvl.player_cords.point_y = ycall;
-            }
-            if (reader.at(i) == BOXP)
-            {
-                bcords.point_x = i;
-                bcords.point_y = ycall;
-                rlvl.box_cords.push_back(bcords);
-            }
-            if (reader.at(i) == DOTP)
-            {
-                fcords.point_x = i;
-                fcords.point_y = ycall;
-                rlvl.f_cords.push_back(fcords);
-            }
             lvlstring.push_back(reader.at(i));
         }
-        rlvl.lmap.push_back(lvlstring);
-        ycall += 1;
+
+        lvlmat.push_back(lvlstring);
     }
 
-    printf("\nlevel loaded successfully.\n");
-    printf("\nplayer: x: %d y: %d\n",
-        rlvl.player_cords.point_x,
-        rlvl.player_cords.point_y);
-
-    for (int i = 0; i < rlvl.box_cords.size(); i++)
-    {
-        printf("box %d: x: %d, y: %d\n", i+1,
-            rlvl.box_cords.at(i).point_x,
-            rlvl.box_cords.at(i).point_y);
-    }
-
-    for (int i = 0; i < rlvl.f_cords.size(); i++)
-    {
-        printf("f-point %d: x: %d, y: %d\n", i+1,
-            rlvl.f_cords.at(i).point_x,
-            rlvl.f_cords.at(i).point_y);
-    }
-
-    curLvl = rlvl;
+    return lvlmat;
 }
 
 void renderLevel(Level blvl)
@@ -106,8 +143,6 @@ void renderLevel(Level blvl)
         }
         printf("\n");
     }
-
-    printf("%d/%d\n", number, LVLS);
 }
 
 void readSignal(char ch)
@@ -116,16 +151,16 @@ void readSignal(char ch)
         ask_if_quit();
     if (ch == 0x31 && g_mode == 0)
     {
-        g_mode = 1;
-        loadLevel();
-    }
-    if (ch == 0x32)
-    {
         std::ifstream load("dontedit.save", std::ios::binary);
         load >> number;
         load.close();
         g_mode = 1;
-        loadLevel();
+        load_map(pick_map());
+    }
+    if (ch == 0x32 && g_mode == 0)
+    {
+        g_mode = 2;
+        load_map(load_from_file());
     }
     if (ch == 0x33)
     {
@@ -134,25 +169,25 @@ void readSignal(char ch)
         else
             fdebug = true;
     }
-
-    if ((ch == W_CHAR || ch == A_CHAR || ch == S_CHAR || ch == D_CHAR) && (g_mode == 1))
+    if ((ch == W_CHAR || ch == A_CHAR || ch == S_CHAR || ch == D_CHAR) && (g_mode != 0))
         moveChar(ch);
     if (ch == 0x20 && g_mode == 1)
-        loadLevel();
-    if (g_mode == 1 && check_end(curLvl.box_cords, curLvl.f_cords))
+        load_map(pick_map());
+    if (ch == 0x20 && g_mode == 2)
+        load_map(load_from_file());
+    if ((g_mode != 0) && check_end(curLvl.box_cords, curLvl.f_cords))
     {
-        printf("you completed this level!\n");
-        printf("\n");
-        if (number == 3)
+        if (g_mode == 2)
         {
-            printf("you have completed the main game!\n");
+            printf("you have completed this level!\n");
+            printf("\n");
             startMenu();
             g_mode = 0;
         }
-        else
+        else if (g_mode == 1)
         {
-            number += 1;
-            loadLevel();
+            number++;
+            load_map(pick_map());
         }
     }
 }
@@ -286,7 +321,7 @@ void ask_if_quit()
             std::ofstream save("dontedit.save", std::ios::binary);
             save << number << "\n";
             save.close();
-            abort();
+            exit(0);
         }
         if (ask == 'n')
             break;
