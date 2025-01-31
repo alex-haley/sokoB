@@ -1,0 +1,5 @@
+to load file from txt file, create txt file and name this file 'level1.txt'
+then put some characters to create a level
+there should be 'b' - boxes, '.' - end points for boxes, '@' - character
+without this signs level will not load to the game, or the game would crash
+walls could be any character, but not listed characters above.
