@@ -177,7 +177,7 @@ void read_signal(char ch)
         case ONE:
             if (g_mode == 0)
             {
-                std::fstream load("dontedit.save", std::ios::binary);
+                std::ifstream load("dontedit.save", std::ios::binary);
                 load >> number;
                 load.close();
                 g_mode = 1;
