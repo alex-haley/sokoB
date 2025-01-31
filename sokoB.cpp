@@ -54,6 +54,7 @@ std::vector<std::vector<char>> pick_map()
             return lvl4;
             break;
         default:
+            printf("you have finished the game!\n");
             exit(-1);
             break;
     }
