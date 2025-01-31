@@ -12,11 +12,11 @@ int main()
     while (true)
     {
         ch = getch();
-        readSignal(ch);
+        read_signal(ch);
         if (fdebug)
             printf("\nyou pressed %c : %x\n", ch, ch);
         if (g_mode == 1 || g_mode == 2)
-            renderLevel(curLvl);
+            render_level(curLvl);
     }
 
     return 0;
@@ -93,20 +93,20 @@ void load_map(std::vector< std::vector<char> > load_this_map)
     curLvl = rlvl;
 
     printf("\n[m]level loaded successfully.\n");
-    printf("\nplayer: x: %d y: %d\n",
+    printf("\nplayer: \tx: %d \ty: %d\n",
         curLvl.player_cords.point_x,
         curLvl.player_cords.point_y);
 
     for (int i = 0; i < curLvl.box_cords.size(); i++)
     {
-        printf("box %d: x: %d, y: %d\n", i+1,
+        printf("box%d: \t\tx: %d, \ty: %d\n", i+1,
             curLvl.box_cords.at(i).point_x,
             curLvl.box_cords.at(i).point_y);
     }
 
     for (int i = 0; i < curLvl.f_cords.size(); i++)
     {
-        printf("f-point %d: x: %d, y: %d\n", i+1,
+        printf("f-point%d: \tx: %d, \ty: %d\n", i+1,
             curLvl.f_cords.at(i).point_x,
             curLvl.f_cords.at(i).point_y);
     }
@@ -134,7 +134,7 @@ std::vector< std::vector<char> > load_from_file()
     return lvlmat;
 }
 
-void renderLevel(Level blvl)
+void render_level(Level blvl)
 {
     for (int i = 0; i < blvl.lmap.size(); i++)
     {
@@ -146,37 +146,56 @@ void renderLevel(Level blvl)
     }
 }
 
-void readSignal(char ch)
+void read_signal(char ch)
 {
-    if (ch == 0x1b || ch == 0x3)
-        ask_if_quit();
-    if (ch == 0x31 && g_mode == 0)
+    switch (ch)
     {
-        std::ifstream load("dontedit.save", std::ios::binary);
-        load >> number;
-        load.close();
-        g_mode = 1;
-        load_map(pick_map());
+        case ESC:
+            ask_if_quit();
+            break;
+
+        case ONE:
+            if (g_mode == 0)
+            {
+                std::fstream load("dontedit.save", std::ios::binary);
+                load >> number;
+                load.close();
+                g_mode = 1;
+                load_map(pick_map());
+            }
+            break;
+
+        case TWO:
+            if (g_mode == 0)
+            {
+                g_mode = 2;
+                load_map(load_from_file());
+            }
+            break;
+
+        case THREE:
+            if (fdebug)
+                fdebug = false;
+            else
+                fdebug = true;
+            break;
+
+        case W:
+        case A:
+        case S:
+        case D:
+            move_char(ch);
+            break;
+
+        case SPACE:
+            if (g_mode == 1)
+                load_map(pick_map());
+            if (g_mode == 2)
+                load_map(load_from_file());
+            break;
     }
-    if (ch == 0x32 && g_mode == 0)
-    {
-        g_mode = 2;
-        load_map(load_from_file());
-    }
-    if (ch == 0x33)
-    {
-        if (fdebug)
-            fdebug = false;
-        else
-            fdebug = true;
-    }
-    if ((ch == W_CHAR || ch == A_CHAR || ch == S_CHAR || ch == D_CHAR) && (g_mode != 0))
-        moveChar(ch);
-    if (ch == 0x20 && g_mode == 1)
-        load_map(pick_map());
-    if (ch == 0x20 && g_mode == 2)
-        load_map(load_from_file());
-    if ((g_mode != 0) && check_end(curLvl.box_cords, curLvl.f_cords))
+
+    if (check_end(curLvl.box_cords, curLvl.f_cords))
     {
         if (g_mode == 2)
         {
@@ -185,7 +204,7 @@ void readSignal(char ch)
             startMenu();
             g_mode = 0;
         }
-        else if (g_mode == 1)
+        if (g_mode == 1)
         {
             number++;
             load_map(pick_map());
@@ -193,16 +212,23 @@ void readSignal(char ch)
     }
 }
 
-void moveChar(char ch)
+void move_char(char ch)
 {
-    if (ch == W_CHAR)
-        change_cords(0, -1);
-    if (ch == A_CHAR)
-        change_cords(-1, 0);
-    if (ch == S_CHAR)
-        change_cords(0, 1);
-    if (ch == D_CHAR)
-        change_cords(1, 0);
+    switch (ch)
+    {
+        case W:
+            change_cords(0,-1);
+            break;
+        case A:
+            change_cords(-1,0);
+            break;
+        case S:
+            change_cords(0,1);
+            break;
+        case D:
+            change_cords(1,0);
+            break;
+    }
 }
 
 void change_cords(int adder_x, int adder_y)
@@ -313,18 +339,16 @@ void ask_if_quit()
     char ask;
     while (true)
     {
-        printf("\ndo you really wonna exit this beautiful game??\n");
-        printf("(y/n): ");
+        printf("\npress [esc] again\n");
         ask = getch();
-        printf("\n");
-        if (ask == 'y')
+        if (ask == ESC)
         {
             std::ofstream save("dontedit.save", std::ios::binary);
             save << number << "\n";
             save.close();
             exit(0);
         }
-        if (ask == 'n')
+        if (ask == CTRL_C)
             break;
     }
 }

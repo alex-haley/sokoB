@@ -8,13 +8,19 @@
 #include <fstream>
 #include <conio.h>
 
-#define W_CHAR  0x77
-#define A_CHAR  0x61
-#define S_CHAR  0x73
-#define D_CHAR  0x64
+#define W       0x77
+#define A       0x61
+#define S       0x73
+#define D       0x64
+#define SPACE   0x20
 #define DOTP    0x2e
 #define BOXP    0x62
 #define PLRP    0x40
+#define ESC     0x1b
+#define CTRL_C  0x3
+#define ONE     0x31
+#define TWO     0x32
+#define THREE   0x33
 #define LVLS    4
 
 struct vec2
@@ -40,9 +46,9 @@ void startMenu();
 std::vector<std::vector<char>> pick_map();
 void load_map(std::vector<std::vector<char>>);
 std::vector<std::vector<char>> load_from_file();
-void renderLevel(Level);
-void readSignal(char);
-void moveChar(char);
+void render_level(Level);
+void read_signal(char);
+void move_char(char);
 void debug(char);
 void ask_if_quit();
 
