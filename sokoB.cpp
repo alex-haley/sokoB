@@ -4,6 +4,7 @@ char ch;
 int g_mode = 0;
 bool fdebug = false;
 int number = 1;
+int how_many_boxes = 0;
 Level curLvl;
 
 int main()
@@ -15,7 +16,7 @@ int main()
         read_signal(ch);
         if (fdebug)
             printf("\nyou pressed %c : %x\n", ch, ch);
-        if (g_mode == 1 || g_mode == 2)
+        if (g_mode != 0)
             render_level(curLvl);
     }
 
@@ -31,7 +32,7 @@ void startMenu()
     printf("\t3. debug\n");
     printf("\t[wasd] to move\n");
     printf("\t[space] to restart level\n");
-    printf("\t[esc]/[ctrl+c] to exit\n");
+    printf("\t[esc] to exit\n");
     printf("NOTE: when you exit game saves your current level\n");
     printf("\tyou can delete save file to start a fresh game\n");
     printf("NOTE: when loading level from file it should be named as 'level1.txt'\n");
@@ -55,7 +56,7 @@ std::vector<std::vector<char>> pick_map()
             break;
         default:
             printf("you have finished the game!\n");
-            exit(-1);
+            exit(0);
             break;
     }
 }
@@ -91,6 +92,7 @@ void load_map(std::vector< std::vector<char> > load_this_map)
     }
 
     curLvl = rlvl;
+    how_many_boxes = 0;
 
     printf("\n[m]level loaded successfully.\n");
     printf("\nplayer: \tx: %d \ty: %d\n",
@@ -112,9 +114,9 @@ void load_map(std::vector< std::vector<char> > load_this_map)
     }
 }
 
-std::vector< std::vector<char> > load_from_file()
+std::vector<std::vector<char>> load_from_file()
 {
-    std::vector< std::vector<char> > lvlmat;
+    std::vector<std::vector<char>> lvlmat;
     std::string reader;
     std::string name = "level1.txt";
     std::ifstream level(name);
@@ -144,6 +146,8 @@ void render_level(Level blvl)
         }
         printf("\n");
     }
+
+    printf("%d/%zu\n", how_many_boxes, curLvl.f_cords.size());
 }
 
 void read_signal(char ch)
@@ -151,7 +155,23 @@ void read_signal(char ch)
     switch (ch)
     {
         case ESC:
-            ask_if_quit();
+            printf("\npress [esc] again\n");
+            char ask;
+            ask = getch();
+            printf("\n");
+
+            switch (ask)
+            {
+                case CTRL_C:
+                    break;
+
+                case ESC:
+                    std::ofstream save("dontedit.save", std::ios::binary);
+                    save << number << "\n";
+                    save.close();
+                    exit(0);
+                    break;
+            }
             break;
 
         case ONE:
@@ -163,7 +183,6 @@ void read_signal(char ch)
                 g_mode = 1;
                 load_map(pick_map());
             }
-            break;
 
         case TWO:
             if (g_mode == 0)
@@ -171,28 +190,51 @@ void read_signal(char ch)
                 g_mode = 2;
                 load_map(load_from_file());
             }
-            break;
 
         case THREE:
             if (fdebug)
+            {
                 fdebug = false;
-            else
+                startMenu();
+            }
+            if (!&debug)
                 fdebug = true;
-            break;
 
         case W:
+            if (g_mode != 0)
+            {
+                change_cords(0,-1);
+                break;
+            }
+
         case A:
+            if (g_mode != 0)
+            {
+                change_cords(-1,0);
+                break;
+            }
+
         case S:
+            if (g_mode != 0)
+            {
+                change_cords(0,1);
+                break;
+            }
+
         case D:
-            move_char(ch);
-            break;
+            if (g_mode != 0)
+            {
+                change_cords(1,0);
+                break;
+            }
 
         case SPACE:
             if (g_mode == 1)
                 load_map(pick_map());
             if (g_mode == 2)
                 load_map(load_from_file());
-            break;
+
+        default:
     }
 
     if (check_end(curLvl.box_cords, curLvl.f_cords))
@@ -209,25 +251,6 @@ void read_signal(char ch)
             number++;
             load_map(pick_map());
         }
-    }
-}
-
-void move_char(char ch)
-{
-    switch (ch)
-    {
-        case W:
-            change_cords(0,-1);
-            break;
-        case A:
-            change_cords(-1,0);
-            break;
-        case S:
-            change_cords(0,1);
-            break;
-        case D:
-            change_cords(1,0);
-            break;
     }
 }
 
@@ -267,8 +290,7 @@ bool check_end(std::vector<vec2> boxes, std::vector<vec2> fpoints)
                 copt++;
         }
     }
-
-    printf("%d %zu\n", copt, fpoints.size());
+    how_many_boxes = copt;
 
     if (copt == fpoints.size())
         return true;
@@ -332,23 +354,4 @@ bool find_cords(vec2 ft, std::vector<vec2> here)
         }
     }
     return false;
-}
-
-void ask_if_quit()
-{
-    char ask;
-    while (true)
-    {
-        printf("\npress [esc] again\n");
-        ask = getch();
-        if (ask == ESC)
-        {
-            std::ofstream save("dontedit.save", std::ios::binary);
-            save << number << "\n";
-            save.close();
-            exit(0);
-        }
-        if (ask == CTRL_C)
-            break;
-    }
 }

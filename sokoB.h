@@ -48,9 +48,7 @@ void load_map(std::vector<std::vector<char>>);
 std::vector<std::vector<char>> load_from_file();
 void render_level(Level);
 void read_signal(char);
-void move_char(char);
 void debug(char);
-void ask_if_quit();
 
 std::vector< std::vector<char> > lvl1 = {
     {'#','#','#','#','#','#','#','#','#','#','#',' ', ' ', ' ', ' ', ' ', ' '},
