@@ -183,6 +183,7 @@ void read_signal(char ch)
                 g_mode = 1;
                 load_map(pick_map());
             }
+            break;
 
         case TWO:
             if (g_mode == 0)
@@ -190,6 +191,7 @@ void read_signal(char ch)
                 g_mode = 2;
                 load_map(load_from_file());
             }
+            break;
 
         case THREE:
             if (fdebug)
@@ -197,8 +199,9 @@ void read_signal(char ch)
                 fdebug = false;
                 startMenu();
             }
-            if (!&debug)
+            if (!debug)
                 fdebug = true;
+            break;
 
         case W:
             if (g_mode != 0)
