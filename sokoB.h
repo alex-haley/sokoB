@@ -43,14 +43,13 @@ bool check_end(std::vector<vec2>, std::vector<vec2>);
 void change_cords(int, int);
 void swap(vec2, vec2, char, char);
 void startMenu();
-std::vector<std::vector<char>> pick_map();
-void load_map(std::vector<std::vector<char>>);
+void load_map();
 std::vector<std::vector<char>> load_from_file();
 void render_level(Level);
 void read_signal(char);
 void debug(char);
 
-std::vector< std::vector<char> > lvl1 = {
+std::vector<std::vector<char>> lvl1 = {
     {'#','#','#','#','#','#','#','#','#','#','#',' ', ' ', ' ', ' ', ' ', ' '},
     {'#','@',' ',' ',' ',' ',' ',' ',' ',' ','#',' ', ' ', ' ', ' ', ' ', ' '},
     {'#',' ',' ',' ','b','b',' ',' ',' ',' ','#',' ', ' ', ' ', ' ', ' ', ' '},

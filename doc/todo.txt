@@ -5,4 +5,5 @@ Vulkan
 sokoB
     make saves better.
     make graphics mode (when i succedded Vulkan API)
-    maybe turn levels into an ascii_map() function inside program and basically render levels inside program and not in txt files?
+    make timeback mode to undo for 1 move per timeback click, but if the player is standing near the box that would move to that coordinate, give an error of timeback and dont move anything until the player would go to different block
+    / or we can just move player if he stands on the place where the box should move in timeback mode

@@ -3,7 +3,7 @@
 char ch;
 int g_mode = 0;
 bool fdebug = false;
-int number = 1;
+int number = 0;
 int how_many_boxes = 0;
 Level curLvl;
 
@@ -38,51 +38,36 @@ void startMenu()
     printf("NOTE: when loading level from file it should be named as 'level1.txt'\n");
 }
 
-std::vector<std::vector<char>> pick_map()
+void load_map()
 {
-    switch (number)
-    {
-        case 1:
-            return lvl1;
-            break;
-        case 2:
-            return lvl2;
-            break;
-        case 3:
-            return lvl3;
-            break;
-        case 4:
-            return lvl4;
-            break;
-        default:
-            printf("you have finished the game!\n");
-            exit(0);
-            break;
-    }
-}
-
-void load_map(std::vector< std::vector<char> > load_this_map)
-{
+    std::vector<std::vector<char>> const map_table[LVLS] = {lvl1, lvl2, lvl3, lvl4};
     Level rlvl;
-    rlvl.lmap = load_this_map;
+
+    if (g_mode == 2)
+    {
+        rlvl.lmap = load_from_file();
+    } else {
+        rlvl.lmap = map_table[number];
+    }
+
     vec2 bcords;
     vec2 fcords;
-    for (int i = 0; i < load_this_map.size(); i++)
+    for (int i = 0; i < rlvl.lmap.size(); i++)
     {
-        for (int j = 0; j < load_this_map.at(i).size(); j++)
+        for (int j = 0; j < rlvl.lmap.at(i).size(); j++)
         {
-            if (load_this_map.at(i).at(j) == PLRP)
+            if (rlvl.lmap.at(i).at(j) == PLRP)
             {
                 rlvl.player_cords.point_x = j;
                 rlvl.player_cords.point_y = i;
             }
-            if (load_this_map.at(i).at(j) == BOXP)
+            if (rlvl.lmap.at(i).at(j) == BOXP)
             {
                 bcords.point_x = j;
                 bcords.point_y = i;
                 rlvl.box_cords.push_back(bcords);
             }
-            if (load_this_map.at(i).at(j) == DOTP)
+            if (rlvl.lmap.at(i).at(j) == DOTP)
             {
                 fcords.point_x = j;
                 fcords.point_y = i;
@@ -101,14 +86,14 @@ void load_map(std::vector< std::vector<char> > load_this_map)
 
     for (int i = 0; i < curLvl.box_cords.size(); i++)
     {
-        printf("box%d: \t\tx: %d, \ty: %d\n", i+1,
+        printf("box%d: \t\tx: %d \ty: %d\n", i+1,
             curLvl.box_cords.at(i).point_x,
             curLvl.box_cords.at(i).point_y);
     }
 
     for (int i = 0; i < curLvl.f_cords.size(); i++)
     {
-        printf("f-point%d: \tx: %d, \ty: %d\n", i+1,
+        printf("f-point%d: \tx: %d \ty: %d\n", i+1,
             curLvl.f_cords.at(i).point_x,
             curLvl.f_cords.at(i).point_y);
     }
@@ -181,7 +166,7 @@ void read_signal(char ch)
                 load >> number;
                 load.close();
                 g_mode = 1;
-                load_map(pick_map());
+                load_map();
             }
             break;
 
@@ -189,7 +174,7 @@ void read_signal(char ch)
             if (g_mode == 0)
             {
                 g_mode = 2;
-                load_map(load_from_file());
+                load_map();
             }
             break;
 
@@ -199,7 +184,7 @@ void read_signal(char ch)
                 fdebug = false;
                 startMenu();
             }
-            if (!debug)
+            else
                 fdebug = true;
             break;
 
@@ -233,9 +218,9 @@ void read_signal(char ch)
 
         case SPACE:
             if (g_mode == 1)
-                load_map(pick_map());
+                load_map();
             if (g_mode == 2)
-                load_map(load_from_file());
+                load_map();
 
         default:
     }
@@ -252,7 +237,7 @@ void read_signal(char ch)
         if (g_mode == 1)
         {
             number++;
-            load_map(pick_map());
+            load_map();
         }
     }
 }
