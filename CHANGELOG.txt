@@ -1,0 +1,15 @@
+build v0.14:
+    + in change_cords() function change the type of input variables to u8.
+    + global variables g_mode, number, how_many_boxes, now have u8 type.
+    + adds two global variables X, Y, for tracking last move to undo it
+    + adds function invert() which inverts passed int variables.
+    + function change_cords() now have markers which indicate if we need to invert values or not.
+    + added button Q, which you can press while playing to undo your latest move.
+    + updated the main screen.
+
+build v0.13:
+    + set getch() to _getch() as compiler told me to.
+    + in function read_signal() default statement now have curly braces.
+
+build v0.12:
+    // need to track previous changes here...

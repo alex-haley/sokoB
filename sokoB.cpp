@@ -1,18 +1,22 @@
 #include "sokoB.h"
 
+// TODO: test inline functions. if they would be faster and occupy less memory, we can use them.
+
 char ch;
-int g_mode = 0;
+u8 g_mode = 0;
 bool fdebug = false;
-int number = 0;
-int how_many_boxes = 0;
+u8 number = 0;
+u8 how_many_boxes = 0;
 Level curLvl;
+s8 X = 0;
+s8 Y = 0;
 
 int main()
 {
     startMenu();
     while (true)
     {
-        ch = getch();
+        ch = _getch();
         read_signal(ch);
         if (fdebug)
             printf("\nyou pressed %c : %x\n", ch, ch);
@@ -26,13 +30,15 @@ int main()
 void startMenu()
 {
     printf("\n");
-    printf("mini-sokoban game made by alex-haley, 2025\n");
+    printf("mini-sokoban game made by alex-haley, 2025\n\n");
     printf("\t1. start game\n");
     printf("\t2. load level from file\n");
-    printf("\t3. debug\n");
-    printf("\t[wasd] to move\n");
-    printf("\t[space] to restart level\n");
-    printf("\t[esc] to exit\n");
+    printf("\t3. debug\n\n");
+    printf("\tcontrols:\n\n");
+    printf("\t[WASD] move\n");
+    printf("\t[Q] undo latest move\n");
+    printf("\t[SPACE] restart level\n");
+    printf("\t[ESC] exit\n\n");
     printf("NOTE: when you exit game saves your current level\n");
     printf("\tyou can delete save file to start a fresh game\n");
     printf("NOTE: when loading level from file it should be named as 'level1.txt'\n");
@@ -43,12 +49,8 @@ void load_map()
     std::vector<std::vector<char>> const map_table[LVLS] = {lvl1, lvl2, lvl3, lvl4};
     Level rlvl;
 
-    if (g_mode == 2)
-    {
-        rlvl.lmap = load_from_file();
-    } else {
-        rlvl.lmap = map_table[number];
-    }
+    if (g_mode == 2) {rlvl.lmap = load_from_file();}
+    else             {rlvl.lmap = map_table[number];}
 
     vec2 bcords;
     vec2 fcords;
@@ -142,13 +144,12 @@ void read_signal(char ch)
         case ESC:
             printf("\npress [esc] again\n");
             char ask;
-            ask = getch();
+            ask = _getch();
             printf("\n");
 
             switch (ask)
             {
-                case CTRL_C:
-                    break;
+                case CTRL_C: break;
 
                 case ESC:
                     std::ofstream save("dontedit.save", std::ios::binary);
@@ -156,8 +157,7 @@ void read_signal(char ch)
                     save.close();
                     exit(0);
                     break;
-            }
-            break;
+            } break;
 
         case ONE:
             if (g_mode == 0)
@@ -167,16 +167,14 @@ void read_signal(char ch)
                 load.close();
                 g_mode = 1;
                 load_map();
-            }
-            break;
+            } break;
 
         case TWO:
             if (g_mode == 0)
             {
                 g_mode = 2;
                 load_map();
-            }
-            break;
+            } break;
 
         case THREE:
             if (fdebug)
@@ -191,28 +189,45 @@ void read_signal(char ch)
         case W:
             if (g_mode != 0)
             {
-                change_cords(0,-1);
+                change_cords(0,-1, 0);
+                X = 0;
+                Y = -1;
                 break;
             }
 
         case A:
             if (g_mode != 0)
             {
-                change_cords(-1,0);
+                change_cords(-1,0, 0);
+                X = -1;
+                Y = 0;
                 break;
             }
 
         case S:
             if (g_mode != 0)
             {
-                change_cords(0,1);
+                change_cords(0,1, 0);
+                X = 0;
+                Y = 1;
                 break;
             }
 
         case D:
             if (g_mode != 0)
             {
-                change_cords(1,0);
+                change_cords(1,0, 0);
+                X = 1;
+                Y = 0;
+                break;
+            }
+
+        case Q:
+            if (g_mode != 0)
+            {
+                change_cords(X, Y, 1);
+                X = 0;
+                Y = 0;
                 break;
             }
 
@@ -222,7 +237,7 @@ void read_signal(char ch)
             if (g_mode == 2)
                 load_map();
 
-        default:
+        default: {};
     }
 
     if (check_end(curLvl.box_cords, curLvl.f_cords))
@@ -242,7 +257,15 @@ void read_signal(char ch)
     }
 }
 
-void change_cords(int adder_x, int adder_y)
+s8 invert(s8 d)
+{
+    if (d != 0)
+        return (d ^ 0xFF)|0x1;
+    else
+        return d;
+}
+
+void change_cords(s8 adder_x, s8 adder_y, char mark)
 {
     vec2 move_to;
 
@@ -250,25 +273,50 @@ void change_cords(int adder_x, int adder_y)
     move_to.point_y = curLvl.player_cords.point_y + adder_y;
 
     if (is_movable(move_to, 'p'))
+    {
+        if (mark == 1)
+        {
+            move_to.point_x = curLvl.player_cords.point_x + invert(adder_x);
+            move_to.point_y = curLvl.player_cords.point_y + invert(adder_y);
+        }
         swap(curLvl.player_cords, move_to, '@', 'p');
+    }
+
     else if (is_movable(move_to, 'b'))
     {
         vec2 move_box;
 
         move_box.point_x = move_to.point_x + adder_x;
         move_box.point_y = move_to.point_y + adder_y;
-
-        if (is_movable(move_box, 'p'))
+        if (mark == 1)
         {
-            swap(move_to, move_box, 'b', 'b');
+            vec2 inm;
+            vec2 dnm;
+
+            move_to.point_x = curLvl.player_cords.point_x + invert(adder_x);
+            move_to.point_y = curLvl.player_cords.point_y + invert(adder_y);
             swap(curLvl.player_cords, move_to, '@', 'p');
+
+            inm.point_x = move_to.point_x + adder_x;
+            inm.point_y = move_to.point_y + adder_y;
+            dnm.point_x = inm.point_x + adder_x;
+            dnm.point_y = inm.point_y + adder_y;
+            swap(dnm, inm, 'b', 'b');
+        }
+        else
+        {
+             if (is_movable(move_box, 'p'))
+            {
+                swap(move_to, move_box, 'b', 'b');
+                swap(curLvl.player_cords, move_to, '@', 'p');
+            }
         }
     }
 }
 
 bool check_end(std::vector<vec2> boxes, std::vector<vec2> fpoints)
 {
-    int copt = 0;
+    u8 copt = 0;
     for (int i = 0; i < fpoints.size(); i++)
     {
         for (int j = 0; j < boxes.size(); j++)

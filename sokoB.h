@@ -6,12 +6,14 @@
 #include <ios>
 #include <iostream>
 #include <fstream>
+#include <stdint.h>
 #include <conio.h>
 
 #define W       0x77
 #define A       0x61
 #define S       0x73
 #define D       0x64
+#define Q       0x71
 #define SPACE   0x20
 #define DOTP    0x2e
 #define BOXP    0x62
@@ -22,6 +24,19 @@
 #define TWO     0x32
 #define THREE   0x33
 #define LVLS    4
+
+typedef int8_t      s8;
+typedef int16_t     s16;
+typedef int32_t     s32;
+typedef int64_t     s64;
+
+typedef uint8_t     u8;
+typedef uint16_t    u16;
+typedef uint32_t    u32;
+typedef uint64_t    u64;
+
+typedef float       f32;
+typedef double      f64;
 
 struct vec2
 {
@@ -40,7 +55,8 @@ struct Level
 bool is_movable(vec2, char);
 bool find_cords(vec2, std::vector<vec2>);
 bool check_end(std::vector<vec2>, std::vector<vec2>);
-void change_cords(int, int);
+void change_cords(s8, s8, char);
+s8   invert(s8);
 void swap(vec2, vec2, char, char);
 void startMenu();
 void load_map();
